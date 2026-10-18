@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Join FastPay</title>
+<link rel="icon" href="logo.png">
+<style>
+  :root {
+    --bg: #ffffff; --panel: #f5f6fb; --line: #e3e7f0; --text: #141a2e; --muted: #667089;
+    --gold: #c77700; --green: #16a34a; --btn: #4f46e5; --btn-text: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1218; --panel: #191f2b; --line: #2e384b; --text: #eef1f8; --muted: #97a3bd;
+      --gold: #f5c451; --green: #4ade80; --btn: #6366f1; --btn-text: #ffffff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 440px; margin: 0 auto; padding: 28px 16px 40px; }
+  .logo { display: block; width: 170px; height: auto; margin: 0 auto 6px; }
+  h1 { font-size: 24px; text-align: center; margin: 4px 0 4px; }
+  .sub { text-align: center; color: var(--muted); margin: 0 0 22px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .label { color: var(--muted); font-size: 13px; }
+  .code-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .code { font-size: 30px; font-weight: 800; letter-spacing: 2px; color: var(--gold); word-break: break-all; }
+  .copy {
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 14px; cursor: pointer; flex-shrink: 0;
+  }
+  .btn {
+    display: block; width: 100%; text-align: center; text-decoration: none; cursor: pointer;
+    background: var(--btn); color: var(--btn-text); border: 0; border-radius: 12px;
+    padding: 15px 16px; font: inherit; font-weight: 700; font-size: 17px;
+  }
+  ol { margin: 0; padding-left: 20px; }
+  ol li { margin: 6px 0; }
+  .ok { color: var(--green); font-size: 14px; min-height: 21px; margin-top: 8px; text-align: center; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="logo.png" alt="FastPay">
+  <h1>Join FastPay</h1>
+  <p class="sub" id="sub">Download the app and create your account.</p>
+
+  <div class="card hidden" id="sponsorCard">
+    <div class="label">Your Sponsor ID</div>
+    <div class="code-row">
+      <div class="code" id="code"></div>
+      <button class="copy" id="copyBtn" type="button">Copy</button>
+    </div>
+    <div class="hint">This is filled in for you when you register in the app.</div>
+  </div>
+
+  <div class="card">
+    <a class="btn dl" id="dlMain" href="#" data-file="FastPay-arm64.apk">Download FastPay app</a>
+    <div class="ok" id="ok" aria-live="polite"></div>
+  </div>
+
+  <div class="card">
+    <ol>
+      <li>Tap <b>Download FastPay app</b>.</li>
+      <li>Open the downloaded file and tap <b>Install</b>. If your phone asks, allow installing from this browser.</li>
+      <li>Open FastPay and tap <b>Register</b>.<span id="stepCode"> Your Sponsor ID is already filled in - check the name shown and continue.</span></li>
+    </ol>
+  </div>
+</main>
+<script>
+  // Where the APK files are: the "latest release" of this GitHub repository. Set APK_BASE by hand only when
+  // the page is served from your own domain instead of <name>.github.io.
+  var APK_BASE = '';
+  if (!APK_BASE) {
+    var host = location.hostname, owner = host.split('.')[0];
+    var repo = location.pathname.split('/').filter(Boolean)[0];
+    if (!repo || /\.html?$/i.test(repo)) repo = host; // user site: <name>.github.io
+    APK_BASE = 'https://github.com/' + owner + '/' + repo + '/releases/latest/download/';
+  }
+
+  var params = new URLSearchParams(location.search);
+  var raw = (params.get('ref') || location.hash.replace('#', '')).trim().toUpperCase();
+  var code = /^[A-Z0-9]{3,12}$/.test(raw) ? raw : '';
+  var clipText = code ? 'FastPay Sponsor ID: ' + code : '';
+
+  if (code) {
+    document.getElementById('sponsorCard').classList.remove('hidden');
+    document.getElementById('code').textContent = code;
+    document.getElementById('sub').textContent = 'You were invited. Download the app and create your account.';
+  } else {
+    document.getElementById('stepCode').textContent = ' Enter the Sponsor ID of the person who invited you.';
+  }
+
+  function copyCode() {
+    if (!clipText) return Promise.resolve(false);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(clipText).then(function () { return true; }, fallback);
+    }
+    return Promise.resolve(fallback());
+  }
+  function fallback() {
+    try {
+      var t = document.createElement('textarea');
+      t.value = clipText; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      var done = document.execCommand('copy');
+      document.body.removeChild(t);
+      return done;
+    } catch (e) { return false; }
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    copyCode().then(function (done) {
+      document.getElementById('ok').textContent = done ? 'Sponsor ID copied.' : 'Please note down the Sponsor ID.';
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.dl'), function (a) {
+    a.href = APK_BASE + a.getAttribute('data-file');
+    a.addEventListener('click', function () {
+      // Copy first (the click counts as the user's permission), then the download starts from the link itself.
+      copyCode().then(function (done) {
+        document.getElementById('ok').textContent = 'Downloading...' + (done ? ' Sponsor ID copied for the app.' : '');
+      });
+    });
+  });
+</script>
+</body>
+</html>
